@@ -1,0 +1,83 @@
+body {
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  margin: 0px;
+}
+
+.hide {
+  display: none;
+}
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.input-row-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 13px;
+}
+
+input {
+  background: transparent;
+  border: 1px solid #ffffff4d;
+  padding: 10px 15px;
+  font-size: 16px;
+  color: #fff;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 1px;
+}
+
+input:focus {
+  border-color: rgb(211, 211, 211);
+  box-shadow: 0 0 8px rgb(211, 211, 211);
+}
+
+/* Damascus-like animated background */
+
+.background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url("C:\Users\bgree\OneDrive\Desktop\Dev\projects\voting-system\src\damascus.jpg")
+    no-repeat center center fixed;
+  background-size: cover;
+  animation: damascusMove 15s ease infinite;
+  z-index: -1;
+}
+
+/* Smooth color movement */
+@keyframes damascusMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Content styling */
+.content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  top: 40%;
+}
