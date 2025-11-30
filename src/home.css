@@ -210,7 +210,7 @@ body {
   border-color: rgb(255, 255, 255);
 }
 
-input {
+.home-root input {
   background: transparent;
   border: 1px solid #ffffff6d;
   padding: 10px 15px;
@@ -224,12 +224,12 @@ input {
   box-sizing: border-box;
 }
 
-input::placeholder {
+.home-root input::placeholder {
   color: rgba(255, 255, 255, 0.4);
   letter-spacing: 1px;
 }
 
-input:focus {
+.home-root input:focus {
   border-color: rgb(176, 176, 176);
   box-shadow: 0 0 4px rgb(106, 106, 106);
 }
