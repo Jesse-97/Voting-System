@@ -31,7 +31,12 @@ app.post("/login", async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid password" });
     }
-    return res.status(200).json({ message: "Login successful" });
+    return res
+      .status(200)
+      .json({
+        message: "Login successful",
+        user: { id: user._id, username: user.username },
+      });
   }
 });
 

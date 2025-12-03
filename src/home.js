@@ -1,9 +1,33 @@
-import { useNavigate } from "react-router-dom";
-import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import "./home.css";
 
 export default function Home() {
   const [query, setQuery] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [user, setUser] = useState(() => {
+    if (location.state?.user) {
+      return location.state.user;
+    }
+
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return null;
+      }
+    }
+
+    return null;
+  });
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/", { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -17,7 +41,26 @@ export default function Home() {
     console.log("Sidebar clicked");
   };
 
-  const [username, setUsername] = useState("");
+  const handleLogoutClick = () => {
+    localStorage.removeItem("user");
+    location.state = null;
+    navigate("/");
+  };
+
+  if (!user) {
+    return (
+      <div className="home-root">
+        <div className="video-background">
+          <video autoPlay muted loop playsInline preload="auto">
+            <source src="/damascus.mp4" type="video/mp4" />
+          </video>
+        </div>
+        <div className="main-container">
+          <h2 style={{ color: "white" }}>Redirecting to login...</h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -64,12 +107,11 @@ export default function Home() {
                   </svg>
                 </button>
                 <h1 className="visionText" style={{ fontSize: "1.15rem" }}>
-                  Username
-                  {username}
+                  {user.username}
                 </h1>
               </div>
               <div className="text-container">
-                <button>
+                <button onClick={handleLogoutClick}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 640 640"

@@ -38,8 +38,12 @@ export default function Login() {
       console.log("Response body:", data);
 
       if (res.status === 200) {
+        const user = data.user;
+
+        localStorage.setItem("user", JSON.stringify(user));
+
         setToast({ msg: "Login successful", type: "success" });
-        navigate("/home");
+        navigate("/home", { state: { user } });
       } else if (res.status === 401) {
         setToast({ msg: "Invalid password", type: "error" });
       } else if (res.status === 404) {
