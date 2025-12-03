@@ -1,9 +1,17 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import React from "react";
 import Login from "./login.js";
 import Register from "./register.js";
 import Home from "./home.js";
 
 export default function App() {
-  const currentPage = <Register />;
-  return currentPage;
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/home" element={<Home />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }

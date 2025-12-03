@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import "./home.css";
 
 export default function Home() {
@@ -8,11 +9,6 @@ export default function Home() {
     e.preventDefault();
     console.log("Search query:", query);
   };
-
-  useEffect(() => {
-    const video = document.getElementById("bgVideo");
-    if (video) video.playbackRate = 0.4;
-  }, []);
 
   const [open, setOpen] = useState(false);
 
@@ -92,6 +88,9 @@ export default function Home() {
             </div>
           </div>
           <div className="container">
+            <div className="create-button">
+              <button>Create</button>
+            </div>
             <div className="search-container">
               <img src="vector_logo1.png" className="logo" alt="" />
               <form onSubmit={handleSubmit}>

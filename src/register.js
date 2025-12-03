@@ -1,13 +1,70 @@
+import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import "./register.css";
+import Toast from "./Toast.js";
 
 export default function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [repassword, setRePassword] = useState("");
+  const [toast, setToast] = useState(null);
 
-  const handleUserSubmit = (e) => {
-    e.preventDefault();
-    console.log("User:", username);
+  const navigate = useNavigate();
+
+  const handleRePasswordSubmit = async (e) => {
+    if (e) e.preventDefault();
+    if (!username || !password) {
+      setToast({ msg: "Please enter username and password", type: "error" });
+      return;
+    }
+    if (password !== repassword) {
+      setToast({ msg: "Passwords do not match", type: "error" });
+      return;
+    }
+
+    if (!repassword) {
+      setToast({ msg: "Please re-enter your password", type: "error" });
+      return;
+    }
+
+    console.log("Register:", { username, password });
+
+    try {
+      const res = await fetch("http://localhost:5000/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      console.log("HTTP status:", res.status);
+
+      const data = await res.json().catch((err) => {
+        console.warn("Could not parse JSON:", err);
+        return {};
+      });
+
+      console.log("Response body:", data);
+
+      if (res.status === 201) {
+        setToast({ msg: "Registration successful", type: "success" });
+        navigate("/");
+      } else if (res.status === 409) {
+        setToast({ msg: "Username already exists", type: "error" });
+      } else {
+        setToast({
+          msg: "Registration failed",
+          type: "error",
+        });
+      }
+    } catch (err) {
+      console.error("Network error:", err);
+      setToast({
+        msg: "Network error with server",
+        type: "error",
+      });
+    }
   };
 
   return (
@@ -32,7 +89,7 @@ export default function Register() {
                     d="M320 312C386.3 312 440 258.3 440 192C440 125.7 386.3 72 320 72C253.7 72 200 125.7 200 192C200 258.3 253.7 312 320 312zM290.3 368C191.8 368 112 447.8 112 546.3C112 562.7 125.3 576 141.7 576L498.3 576C514.7 576 528 562.7 528 546.3C528 447.8 448.2 368 349.7 368L290.3 368z"
                   />
                 </svg>
-                <form onSubmit={handleUserSubmit}>
+                <form onSubmit={handleRePasswordSubmit}>
                   <input
                     type="text"
                     placeholder="Username..."
@@ -52,12 +109,7 @@ export default function Register() {
                     d="M256 160L256 224L384 224L384 160C384 124.7 355.3 96 320 96C284.7 96 256 124.7 256 160zM192 224L192 160C192 89.3 249.3 32 320 32C390.7 32 448 89.3 448 160L448 224C483.3 224 512 252.7 512 288L512 512C512 547.3 483.3 576 448 576L192 576C156.7 576 128 547.3 128 512L128 288C128 252.7 156.7 224 192 224z"
                   />
                 </svg>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    console.log("Password:", password);
-                  }}
-                >
+                <form onSubmit={handleRePasswordSubmit}>
                   <input
                     type="password"
                     placeholder="Password..."
@@ -77,32 +129,34 @@ export default function Register() {
                     d="M256 160L256 224L384 224L384 160C384 124.7 355.3 96 320 96C284.7 96 256 124.7 256 160zM192 224L192 160C192 89.3 249.3 32 320 32C390.7 32 448 89.3 448 160L448 224C483.3 224 512 252.7 512 288L512 512C512 547.3 483.3 576 448 576L192 576C156.7 576 128 547.3 128 512L128 288C128 252.7 156.7 224 192 224z"
                   />
                 </svg>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    console.log("Password:", password);
-                  }}
-                >
+                <form onSubmit={handleRePasswordSubmit}>
                   <input
                     type="password"
                     placeholder="Re-enter password..."
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={repassword}
+                    onChange={(e) => setRePassword(e.target.value)}
                   />
                 </form>
               </div>
+              {toast && (
+                <Toast
+                  message={toast.msg}
+                  type={toast.type}
+                  onClose={() => setToast(null)}
+                />
+              )}
             </div>
             <div className="registeration-container">
               <div className="register-text-container">
-                <h2>Don't have an account?</h2>
+                <h2>Already have an account?</h2>
               </div>
               <div className="register-button-container">
-                <button>Register</button>
+                <button onClick={() => navigate("/")}>Login</button>
               </div>
             </div>
           </div>
           <div className="button-container">
-            <button>
+            <button onClick={handleRePasswordSubmit}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 640 640"

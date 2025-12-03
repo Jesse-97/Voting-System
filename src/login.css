@@ -2,6 +2,44 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 200px;
+  padding: 12px 18px;
+  border-radius: 6px;
+  color: white;
+  font-weight: 500;
+  animation: fadeInOut 3s ease;
+  z-index: 1000;
+}
+
+.toast.success {
+  background: #2ecc71;
+}
+
+.toast.error {
+  background: #e74c3c;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 .login-root {
   background: linear-gradient(135deg, #323335, #181a1b);
   font-family: "Roboto", sans-serif;
@@ -50,6 +88,12 @@
 }
 
 .login-root .input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.login-root .login-form {
   display: flex;
   flex-direction: column;
   gap: 13px;
@@ -138,6 +182,7 @@
 .login-root .register-button-container button {
   font-family: "Roboto", sans-serif;
   font-weight: 500;
+  cursor: pointer;
 }
 
 .login-root input {

@@ -138,6 +138,7 @@
 .register-root .register-button-container button {
   font-family: "Roboto", sans-serif;
   font-weight: 500;
+  cursor: pointer;
 }
 
 .register-root input {
