@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import "./home.css";
+import CreatePoll from "./create.js";
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -33,6 +34,12 @@ export default function Home() {
     e.preventDefault();
     console.log("Search query:", query);
   };
+
+  const handleCreateButton = () => {
+    navigate("/create", { state: { user } });
+  };
+
+  const [showCreate, setShowCreate] = useState(false);
 
   const [open, setOpen] = useState(false);
 
@@ -129,9 +136,10 @@ export default function Home() {
               </div>
             </div>
           </div>
+          {showCreate && <CreatePoll onClose={() => setShowCreate(false)} />}
           <div className="container">
             <div className="create-button">
-              <button>Create</button>
+              <button onClick={() => setShowCreate(true)}>Create</button>
             </div>
             <div className="search-container">
               <img src="vector_logo1.png" className="logo" alt="" />
