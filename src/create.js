@@ -6,10 +6,6 @@ export default function Create({ onClose }) {
   const [answers, setAnswers] = useState([
     { id: 1, text: "" },
     { id: 2, text: "" },
-    { id: 3, text: "" },
-    { id: 4, text: "" },
-    { id: 5, text: "" },
-    { id: 6, text: "" },
   ]);
   return (
     <>
@@ -86,7 +82,7 @@ export default function Create({ onClose }) {
                   + Add new option
                 </button>
               </label>
-              <button type="submit">Post</button>
+              <button className="post-btn" type="submit">Post</button>
             </form>
           </div>
         </div>
