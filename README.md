@@ -96,10 +96,3 @@
 
  - If the frontend cannot reach the backend, ensure the backend is running on port 5000 and CORS is enabled (the server already uses `cors()` in `backend/server.js`).
  - For Mongo connection errors, confirm `MONGO_URI` is correct and network access to the cluster is allowed.
-
- ## License
-
- This project is provided as-is for prototyping and learning. No license file is included — add one if you plan to publish or share this repository publicly.
-
- ---
- If you want, I can: wire polls into a real backend collection and migrate the client persistence to use the server; or add tests for the new features. Which would you like next?
