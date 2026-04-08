@@ -1,19 +1,87 @@
-import { useNavigate } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "./create.css";
 
-export default function Create({ onClose }) {
+export default function Create({ onClose, onCreate, currentUser }) {
+  const [question, setQuestion] = useState("");
+  const [description, setDescription] = useState("");
+  const [tagsInput, setTagsInput] = useState("");
+  const [category, setCategory] = useState("General");
+  const [durationHours, setDurationHours] = useState(24);
+  const [allowMultiple, setAllowMultiple] = useState(false);
+  const [visibility, setVisibility] = useState("public");
   const [answers, setAnswers] = useState([
     { id: 1, text: "" },
     { id: 2, text: "" },
   ]);
+
+  const handleClose = () => {
+    if (typeof onClose === "function") {
+      onClose();
+    }
+  };
+
+  const handleCreatePoll = (e) => {
+    e.preventDefault();
+
+    const trimmedQuestion = question.trim();
+    const trimmedDescription = description.trim();
+    const tags = [
+      ...new Set(
+        tagsInput
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean)
+      ),
+    ];
+    const cleanedOptions = answers
+      .map((answer) => answer.text.trim())
+      .filter(Boolean);
+
+    const preparedOptions = cleanedOptions.map((text, index) => ({
+      id: `opt-${Date.now()}-${index}`,
+      text,
+      votes: 0,
+    }));
+
+    if (!trimmedQuestion || preparedOptions.length < 2) {
+      return;
+    }
+
+    const createdAt = new Date();
+    const expiresAt = new Date(
+      createdAt.getTime() + Number(durationHours) * 60 * 60 * 1000
+    );
+
+    const poll = {
+      id: `poll-${Date.now()}`,
+      question: trimmedQuestion,
+      description: trimmedDescription,
+      options: preparedOptions,
+      category,
+      allowMultiple,
+      visibility,
+      createdAt: createdAt.toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      createdBy: currentUser?.username || "Unknown",
+      createdById: currentUser?.id || null,
+      tags,
+      votesByUser: {},
+    };
+
+    if (typeof onCreate === "function") {
+      onCreate(poll);
+    }
+
+    handleClose();
+  };
+
   return (
     <>
       <div className="create-overlay">
         <div className="create-container">
           <header className="create-header">
             <h2>Create a poll</h2>
-            <button onClick={onClose}>
+            <button onClick={handleClose}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 640 640"
@@ -28,14 +96,93 @@ export default function Create({ onClose }) {
           </header>
 
           <div className="create-body">
-            <form className="create-form">
+            <form className="create-form" onSubmit={handleCreatePoll}>
               <label className="question-label">
                 Question:
-                <input type="text" placeholder="What do you want to ask?" />
+                <input
+                  type="text"
+                  placeholder="What do you want to ask?"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  maxLength={120}
+                  required
+                />
               </label>
+
+              <label className="question-label">
+                Description (optional):
+                <textarea
+                  rows={3}
+                  placeholder="Add context for voters..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  maxLength={240}
+                />
+              </label>
+
+              <label className="question-label">
+                Tags (comma separated):
+                <input
+                  type="text"
+                  placeholder="e.g. school, sports, finals"
+                  value={tagsInput}
+                  onChange={(e) => setTagsInput(e.target.value)}
+                  maxLength={120}
+                />
+              </label>
+
+              <div className="poll-settings-grid">
+                <label>
+                  Category:
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                  >
+                    <option value="General">General</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Education">Education</option>
+                  </select>
+                </label>
+
+                <label>
+                  Poll duration:
+                  <select
+                    value={durationHours}
+                    onChange={(e) => setDurationHours(Number(e.target.value))}
+                  >
+                    <option value={24}>24 hours</option>
+                    <option value={72}>3 days</option>
+                    <option value={168}>7 days</option>
+                    <option value={336}>14 days</option>
+                  </select>
+                </label>
+
+                <label>
+                  Visibility:
+                  <select
+                    value={visibility}
+                    onChange={(e) => setVisibility(e.target.value)}
+                  >
+                    <option value="public">Public</option>
+                    <option value="private">Private</option>
+                  </select>
+                </label>
+
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={allowMultiple}
+                    onChange={(e) => setAllowMultiple(e.target.checked)}
+                  />
+                  Allow multiple selections
+                </label>
+              </div>
+
               <label className="answers-label">
                 Options:
-                {answers.map((answer, index) => (
+                {answers.map((answer) => (
                   <div className="answer-box" key={answer.id}>
                     <input
                       type="text"
@@ -55,9 +202,16 @@ export default function Create({ onClose }) {
                     <button
                       className="delete-btn"
                       onClick={() =>
-                        setAnswers(answers.filter((a) => a.id !== answer.id))
+                        setAnswers((prevAnswers) => {
+                          if (prevAnswers.length <= 2) {
+                            return prevAnswers;
+                          }
+
+                          return prevAnswers.filter((a) => a.id !== answer.id);
+                        })
                       }
                       type="button"
+                      disabled={answers.length <= 2}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -82,7 +236,9 @@ export default function Create({ onClose }) {
                   + Add new option
                 </button>
               </label>
-              <button className="post-btn" type="submit">Post</button>
+              <button className="post-btn" type="submit">
+                Post
+              </button>
             </form>
           </div>
         </div>

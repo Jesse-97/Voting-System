@@ -49,6 +49,47 @@
   gap: 15px;
 }
 
+.create-form input,
+.create-form textarea,
+.create-form select {
+  width: 100%;
+  box-sizing: border-box;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #efefef;
+  border-radius: 8px;
+  padding: 10px;
+  font-family: inherit;
+}
+
+.create-form textarea {
+  resize: vertical;
+  min-height: 72px;
+}
+
+.poll-settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.poll-settings-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.poll-settings-grid .checkbox-label {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.poll-settings-grid .checkbox-label input {
+  width: auto;
+}
+
 .create-form .add-answer{
   background: transparent;
   border: none;
@@ -56,6 +97,10 @@
   gap: 6px;
   padding: 3px;
   transition: all 0.2s ease;
+}
+
+.create-form .add-answer:hover {
+  color: #bbbbbb;
 }
 
 .create-form .post-btn {
@@ -104,8 +149,24 @@
   color: white;
 }
 
+.answers-label button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .answers-label button:hover {
   transform: scale(1.2);
   cursor: pointer;
   color: #bbbbbb;
+}
+
+@media (max-width: 640px) {
+  .create-container {
+    width: 92vw;
+    padding: 18px;
+  }
+
+  .poll-settings-grid {
+    grid-template-columns: 1fr;
+  }
 }
