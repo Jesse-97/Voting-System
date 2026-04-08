@@ -1,4 +1,3 @@
-@'
 {
   "experimentalServices": {
     "frontend": {
@@ -11,4 +10,3 @@
     }
   }
 }
-'@ | Set-Content vercel.json
