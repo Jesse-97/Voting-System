@@ -8,7 +8,7 @@ app.use(cors());
 app.use(express.json());
 const port = process.env.PORT || 5000;
 
-const prisma = require("../src/lib/prisma.js");
+const prisma = require('./prisma.js');
 
 app.listen(5000, () => {
   console.log(`Server running on port 5000`);
