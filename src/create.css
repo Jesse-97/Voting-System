@@ -9,18 +9,25 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
   z-index: 1000;
   border-radius: 8px;
 }
 
 .create-container {
   width: 500px;
+  max-height: calc(100vh - 32px);
   background-color: #0c0c0c;
   border-radius: 8px;
   padding: 25px;
   color: white;
   border: white solid 1px;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .create-container .create-header {
@@ -43,6 +50,12 @@
   border-radius: 6px;
   color: #bbbbbb;
 }
+
+.create-body {
+  overflow-y: auto;
+  min-height: 0;
+}
+
 .create-form {
   display: flex;
   flex-direction: column;
@@ -168,6 +181,14 @@
   .create-container {
     width: 92vw;
     padding: 18px;
+  }
+
+  .create-overlay {
+    padding: 12px;
+  }
+
+  .create-container {
+    max-height: calc(100vh - 24px);
   }
 
   .poll-settings-grid {
