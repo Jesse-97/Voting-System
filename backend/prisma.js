@@ -1,4 +1,4 @@
-const { PrismaClient } = require('../node_modules/@prisma/client');
+const { PrismaClient } = require('@prisma/client');
 
 const globalForPrisma = global;
 const prisma = globalForPrisma.prisma ?? new PrismaClient();
