@@ -2,9 +2,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
 import "./home.css";
 import CreatePoll from "./create.js";
-import { loadPolls, normalizePoll, savePolls } from "./pollStorage";
 
 const MAX_POLL_CARDS = 8;
+const API_BASE_URL = process.env.REACT_APP_API_URL || "";
 
 const PIE_COLORS = ["#4fc3f7", "#81c784", "#ffb74d", "#e57373", "#ba68c8"];
 
@@ -55,27 +55,20 @@ const buildPieGradient = (options = []) => {
   return `conic-gradient(${slices.join(",")})`;
 };
 
+const normalizeApiPoll = (poll) => ({
+  ...poll,
+  options: (poll.options || []).map((option) => ({
+    ...option,
+    votes: Number(option.voteCount) || 0,
+  })),
+});
+
 export default function Home() {
   const [query, setQuery] = useState("");
   const [searchMode, setSearchMode] = useState("all");
   const navigate = useNavigate();
   const location = useLocation();
-  const [user] = useState(() => {
-    if (location.state?.user) {
-      return location.state.user;
-    }
-
-    const stored = localStorage.getItem("user");
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch {
-        return null;
-      }
-    }
-
-    return null;
-  });
+  const [user] = useState(() => location.state?.user || null);
 
   useEffect(() => {
     if (!user) {
@@ -101,7 +94,6 @@ export default function Home() {
   };
 
   const handleLogoutClick = () => {
-    localStorage.removeItem("user");
     navigate("/");
   };
 
@@ -110,24 +102,66 @@ export default function Home() {
   };
 
   const handleCreatePoll = (poll) => {
-    setPolls((prevPolls) => [
-      normalizePoll({
-        ...poll,
-        createdBy: poll.createdBy || user?.username || "Unknown",
-        createdById: poll.createdById || user?.id || null,
-      }),
-      ...prevPolls,
-    ]);
-    setShowCreate(false);
+    const createPoll = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/polls`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            question: poll.question,
+            description: poll.description,
+            category: poll.category,
+            visibility: poll.visibility,
+            allowMultiple: poll.allowMultiple,
+            tags: poll.tags,
+            expiresAt: poll.expiresAt,
+            createdBy: poll.createdBy || user?.username || "Unknown",
+            createdById: poll.createdById || user?.id || null,
+            options: (poll.options || []).map((option) => ({ text: option.text })),
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to create poll");
+        }
+
+        const refreshedResponse = await fetch(`${API_BASE_URL}/polls`);
+        if (!refreshedResponse.ok) {
+          throw new Error("Failed to refresh polls");
+        }
+
+        const refreshedPolls = await refreshedResponse.json();
+        setPolls(refreshedPolls.map(normalizeApiPoll));
+        setShowCreate(false);
+      } catch (error) {
+        console.error("Create poll error:", error);
+      }
+    };
+
+    createPoll();
   };
 
   useEffect(() => {
-    setPolls(loadPolls());
-  }, []);
+    const fetchPolls = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/polls`);
 
-  useEffect(() => {
-    savePolls(polls);
-  }, [polls]);
+        if (!response.ok) {
+          throw new Error("Failed to load polls");
+        }
+
+        const data = await response.json();
+        setPolls(data.map(normalizeApiPoll));
+      } catch (error) {
+        console.error("Load polls error:", error);
+        setPolls([]);
+      }
+    };
+
+    fetchPolls();
+  }, []);
 
   const filteredPolls = useMemo(() => {
     const lowerQuery = query.trim().toLowerCase();
@@ -180,43 +214,40 @@ export default function Home() {
       return;
     }
 
-    setPolls((prevPolls) =>
-      prevPolls.map((poll) => {
-        if (poll.id !== activePoll.id) {
-          return poll;
+    const submitVote = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/polls/${activePoll.id}/vote`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              optionIds: selectedOptionIds,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to submit vote");
         }
 
-        const previousSelection = poll.votesByUser?.[user.id] || [];
+        const refreshedResponse = await fetch(`${API_BASE_URL}/polls`);
+        if (!refreshedResponse.ok) {
+          throw new Error("Failed to refresh polls");
+        }
 
-        const updatedOptions = poll.options.map((option) => {
-          const wasSelected = previousSelection.includes(option.id);
-          const isSelected = selectedOptionIds.includes(option.id);
+        const refreshedPolls = await refreshedResponse.json();
+        setPolls(refreshedPolls.map(normalizeApiPoll));
+        closePollPopup();
+      } catch (error) {
+        console.error("Vote submit error:", error);
+      }
+    };
 
-          let updatedVotes = option.votes;
-          if (wasSelected && !isSelected) {
-            updatedVotes = Math.max(0, updatedVotes - 1);
-          } else if (!wasSelected && isSelected) {
-            updatedVotes += 1;
-          }
-
-          return {
-            ...option,
-            votes: updatedVotes,
-          };
-        });
-
-        return {
-          ...poll,
-          options: updatedOptions,
-          votesByUser: {
-            ...(poll.votesByUser || {}),
-            [user.id]: selectedOptionIds,
-          },
-        };
-      })
-    );
-
-    closePollPopup();
+    submitVote();
   };
 
   const cards = [...filteredPolls.slice(0, MAX_POLL_CARDS)];

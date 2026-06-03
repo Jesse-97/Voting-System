@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./userMenu.css";
-import { isPollOwner, loadPolls, normalizePoll, savePolls } from "./pollStorage";
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || "";
 
 export default function UserMenu() {
   const location = useLocation();
@@ -35,33 +36,60 @@ export default function UserMenu() {
   })();
 
   useEffect(() => {
-    setAllPolls(loadPolls());
-  }, []);
+    const fetchPolls = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/polls`);
+
+        if (!response.ok) {
+          throw new Error("Failed to load polls");
+        }
+
+        const data = await response.json();
+        setAllPolls(
+          data.filter((poll) => poll.createdById === user?.id)
+        );
+      } catch (error) {
+        console.error("Load polls error:", error);
+        setAllPolls([]);
+      }
+    };
+
+    fetchPolls();
+  }, [user]);
 
   const myPolls = useMemo(() => {
     if (!user) {
       return [];
     }
 
-    return allPolls.filter((poll) => isPollOwner(poll, user));
+    return allPolls.filter((poll) => poll.createdById === user.id);
   }, [allPolls, user]);
 
-  const handleDeletePoll = (pollId) => {
-    setAllPolls((prevPolls) => {
-      const targetPoll = prevPolls.find((poll) => poll.id === pollId);
+  const handleDeletePoll = async (pollId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/polls/${pollId}`, {
+        method: "DELETE",
+      });
 
-      if (!targetPoll || !isPollOwner(targetPoll, user)) {
-        return prevPolls;
+      if (!response.ok) {
+        throw new Error("Failed to delete poll");
       }
 
-      const updated = prevPolls.filter((poll) => poll.id !== pollId);
-      savePolls(updated);
-      return updated;
-    });
+      const refreshed = await fetch(`${API_BASE_URL}/polls`);
+
+      if (!refreshed.ok) {
+        throw new Error("Failed to refresh polls");
+      }
+
+      const data = await refreshed.json();
+      setAllPolls(data.filter((poll) => poll.createdById === user?.id));
+    } catch (error) {
+      console.error("Delete poll error:", error);
+    }
   };
 
   const beginEditPoll = (poll) => {
-    if (!isPollOwner(poll, user)) {
+    if (poll.createdById !== user?.id) {
       return;
     }
 
@@ -91,32 +119,42 @@ export default function UserMenu() {
       return;
     }
 
-    setAllPolls((prevPolls) => {
-      const updated = prevPolls.map((poll) => {
-        if (poll.id !== pollId) {
-          return poll;
-        }
-
-        if (!isPollOwner(poll, user)) {
-          return poll;
-        }
-
-        return normalizePoll({
-          ...poll,
-          question: trimmedQuestion,
-          description: editingForm.description.trim(),
-          category: editingForm.category,
-          visibility: editingForm.visibility,
-          allowMultiple: editingForm.allowMultiple,
-          tags,
+    const saveEdit = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/polls/${pollId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            question: trimmedQuestion,
+            description: editingForm.description.trim(),
+            category: editingForm.category,
+            visibility: editingForm.visibility,
+            allowMultiple: editingForm.allowMultiple,
+            tags,
+          }),
         });
-      });
 
-      savePolls(updated);
-      return updated;
-    });
+        if (!response.ok) {
+          throw new Error("Failed to save poll");
+        }
 
-    setEditingPollId(null);
+        const refreshed = await fetch(`${API_BASE_URL}/polls`);
+
+        if (!refreshed.ok) {
+          throw new Error("Failed to refresh polls");
+        }
+
+        const data = await refreshed.json();
+        setAllPolls(data.filter((poll) => poll.createdById === user?.id));
+        setEditingPollId(null);
+      } catch (error) {
+        console.error("Save edit error:", error);
+      }
+    };
+
+    saveEdit();
   };
 
   if (!user) {

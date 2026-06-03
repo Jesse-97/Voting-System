@@ -13,4 +13,43 @@ model User {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  polls     Poll[]
+  votes     Vote[]
+}
+
+model Poll {
+  id           String   @id @default(cuid())
+  question     String
+  description  String?
+  category     String   @default("General")
+  visibility   String   @default("public")
+  allowMultiple Boolean @default(false)
+  tags         String[]
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+  createdBy    String
+  createdById  String
+  user         User     @relation(fields: [createdById], references: [id])
+  options      Option[]
+  votes        Vote[]
+}
+
+model Option {
+  id     String @id @default(cuid())
+  text   String
+  votes  Int    @default(0)
+  pollId String
+  poll   Poll   @relation(fields: [pollId], references: [id])
+  Vote   Vote[]
+}
+
+model Vote {
+  id       String @id @default(cuid())
+  userId   String
+  pollId   String
+  optionId String
+  user     User   @relation(fields: [userId], references: [id])
+  poll     Poll   @relation(fields: [pollId], references: [id])
+  option   Option @relation(fields: [optionId], references: [id])
+  @@unique([userId, pollId, optionId])
 }
