@@ -125,6 +125,10 @@
   gap: 8px;
 }
 
+.question-label input{
+  max-width: 95%;
+}
+
 .answers-label {
   margin-top: 10px;
   display: flex;

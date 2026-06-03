@@ -1,23 +1,27 @@
-const mongoose = require("mongoose");
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
-
-const User = require("./models/User");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 const port = process.env.PORT || 5000;
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.log("MongoDB connection error:", err));
+let prisma;
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+async function startServer() {
+  const prismaModule = await import("../src/lib/prisma.js");
+  prisma = prismaModule.default;
+
+  app.listen(5000, () => {
+    console.log(`Server running on port 5000`);
+  });
+}
+
+startServer().catch((err) => {
+  console.error("Server startup error:", err);
+  process.exit(1);
 });
 
 //Login endpoint
@@ -42,7 +46,7 @@ app.post("/login", async (req, res) => {
 
     return res.status(200).json({
       message: "Login successful",
-      user: { id: user._id, username: user.username },
+      user: { id: user.id, username: user.username },
     });
   } catch (error) {
     console.error("Login error:", error);
