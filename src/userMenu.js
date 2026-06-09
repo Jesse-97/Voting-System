@@ -4,6 +4,18 @@ import "./userMenu.css";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "";
 
+function getVisiblePolls(polls, user, isAdmin) {
+  if (!user) {
+    return [];
+  }
+
+  if (isAdmin) {
+    return polls;
+  }
+
+  return polls.filter((poll) => poll.createdById === user.id);
+}
+
 export default function UserMenu() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,6 +47,8 @@ export default function UserMenu() {
     }
   })();
 
+  const isAdmin = Boolean(user?.isAdmin);
+
   useEffect(() => {
     const fetchPolls = async () => {
       try {
@@ -45,9 +59,7 @@ export default function UserMenu() {
         }
 
         const data = await response.json();
-        setAllPolls(
-          data.filter((poll) => poll.createdById === user?.id)
-        );
+          setAllPolls(getVisiblePolls(data, user, isAdmin));
       } catch (error) {
         console.error("Load polls error:", error);
         setAllPolls([]);
@@ -55,20 +67,24 @@ export default function UserMenu() {
     };
 
     fetchPolls();
-  }, [user]);
+  }, [user, isAdmin]);
 
   const myPolls = useMemo(() => {
     if (!user) {
       return [];
     }
 
-    return allPolls.filter((poll) => poll.createdById === user.id);
-  }, [allPolls, user]);
+    return getVisiblePolls(allPolls, user, isAdmin);
+  }, [allPolls, user, isAdmin]);
 
   const handleDeletePoll = async (pollId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/polls/${pollId}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: user.id }),
       });
 
       if (!response.ok) {
@@ -82,14 +98,14 @@ export default function UserMenu() {
       }
 
       const data = await refreshed.json();
-      setAllPolls(data.filter((poll) => poll.createdById === user?.id));
+      setAllPolls(getVisiblePolls(data, user, isAdmin));
     } catch (error) {
       console.error("Delete poll error:", error);
     }
   };
 
   const beginEditPoll = (poll) => {
-    if (poll.createdById !== user?.id) {
+    if (!isAdmin && poll.createdById !== user?.id) {
       return;
     }
 
@@ -127,6 +143,7 @@ export default function UserMenu() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            userId: user.id,
             question: trimmedQuestion,
             description: editingForm.description.trim(),
             category: editingForm.category,
@@ -147,7 +164,7 @@ export default function UserMenu() {
         }
 
         const data = await refreshed.json();
-        setAllPolls(data.filter((poll) => poll.createdById === user?.id));
+        setAllPolls(getVisiblePolls(data, user, isAdmin));
         setEditingPollId(null);
       } catch (error) {
         console.error("Save edit error:", error);
@@ -187,7 +204,10 @@ export default function UserMenu() {
         <h2>User Menu</h2>
         <div className="detail-row">
           <span className="label">Username</span>
-          <span className="value">{user.username || "N/A"}</span>
+          <span className="value user-name-value">
+            {user.username || "N/A"}
+            {isAdmin ? <span className="admin-badge">ADMIN</span> : null}
+          </span>
         </div>
         <div className="detail-row">
           <span className="label">User ID</span>
@@ -199,7 +219,7 @@ export default function UserMenu() {
         </div>
 
         <div className="my-polls-section">
-          <h3>My created polls ({myPolls.length})</h3>
+          <h3>My Polls ({myPolls.length})</h3>
 
           {myPolls.length === 0 ? (
             <p className="empty-polls">No polls created yet.</p>

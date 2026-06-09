@@ -50,9 +50,28 @@ function normalizeTags(tags) {
   return [];
 }
 
+async function canMutatePoll(poll, userId) {
+  if (!userId) {
+    return { allowed: false, status: 400, message: "userId is required" };
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+
+  if (!user) {
+    return { allowed: false, status: 404, message: "User not found" };
+  }
+
+  if (user.isAdmin || poll.createdById === userId) {
+    return { allowed: true };
+  }
+
+  return { allowed: false, status: 403, message: "Forbidden" };
+}
+
 app.delete("/polls/:pollId", async (req, res) => {
   try {
     const { pollId } = req.params;
+    const { userId } = req.body;
 
     const poll = await prisma.poll.findUnique({
       where: { id: pollId },
@@ -61,6 +80,12 @@ app.delete("/polls/:pollId", async (req, res) => {
 
     if (!poll) {
       return res.status(404).json({ message: "Poll not found" });
+    }
+
+    const authorization = await canMutatePoll(poll, userId);
+
+    if (!authorization.allowed) {
+      return res.status(authorization.status).json({ message: authorization.message });
     }
 
     await prisma.$transaction(async (tx) => {
@@ -88,6 +113,7 @@ app.put("/polls/:pollId", async (req, res) => {
   try {
     const { pollId } = req.params;
     const {
+      userId,
       question,
       description,
       category,
@@ -103,6 +129,12 @@ app.put("/polls/:pollId", async (req, res) => {
 
     if (!poll) {
       return res.status(404).json({ message: "Poll not found" });
+    }
+
+    const authorization = await canMutatePoll(poll, userId);
+
+    if (!authorization.allowed) {
+      return res.status(authorization.status).json({ message: authorization.message });
     }
 
     const updatedPoll = await prisma.poll.update({
@@ -145,7 +177,7 @@ app.post("/login", async (req, res) => {
     }
     return res.status(200).json({
       message: "Login successful",
-      user: { id: user.id, username: user.username },
+      user: { id: user.id, username: user.username, isAdmin: user.isAdmin },
     });
   } catch (error) {
     console.error("Login error:", error);

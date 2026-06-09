@@ -40,6 +40,24 @@
   word-break: break-all;
 }
 
+.user-name-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.admin-badge {
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  background: #c62828;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
 .button-row {
   margin-top: 1.2rem;
   display: flex;

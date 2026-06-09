@@ -11,6 +11,7 @@ model User {
   id        String   @id @default(cuid())
   username  String   @unique
   password  String
+  isAdmin   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   polls     Poll[]
@@ -18,20 +19,20 @@ model User {
 }
 
 model Poll {
-  id           String   @id @default(cuid())
-  question     String
-  description  String?
-  category     String   @default("General")
-  visibility   String   @default("public")
-  allowMultiple Boolean @default(false)
-  tags         String[]
-  createdAt    DateTime @default(now())
-  expiresAt    DateTime
-  createdBy    String
-  createdById  String
-  user         User     @relation(fields: [createdById], references: [id])
-  options      Option[]
-  votes        Vote[]
+  id            String   @id @default(cuid())
+  question      String
+  description   String?
+  category      String   @default("General")
+  visibility    String   @default("public")
+  allowMultiple Boolean  @default(false)
+  tags          String[]
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime
+  createdBy     String
+  createdById   String
+  user          User     @relation(fields: [createdById], references: [id])
+  options       Option[]
+  votes         Vote[]
 }
 
 model Option {
