@@ -2,6 +2,8 @@
 
  A lightweight React + Express voting/polling app prototype. This repo contains a React frontend (root) and a small Express + MongoDB backend (in `backend/`). It's designed for local development and quick experimentation with creating polls, voting, searching (including tags), and basic per-user poll management.
 
+Live Link: https://voting-system-coral-five.vercel.app/
+
  ## Highlights
 
  - React SPA using React Router (pages: Login, Register, Home, Create, User Menu).
